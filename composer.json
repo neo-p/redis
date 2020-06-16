@@ -3,18 +3,12 @@
     "description": "redis",
     "type": "library",
     "license": "Apache-2.0",
-    "authors": [
-        {
-            "name": "6xiaowu9",
-            "email": "736518585@qq.com"
-        }
-    ],
     "require": {
         "php": ">=7.0",
         "predis/predis": "^1.1",
-        "neo-p/annotation": "^0.0.1",
-        "neo-p/pool": "^0.0.1",
-        "neo-p/di": "^0.0.1"
+        "neo-p/annotation": "^1.0.0",
+        "neo-p/pool": "^1.0.0",
+        "neo-p/di": "^1.0.0"
     },
     "autoload": {
         "psr-4": {
