@@ -1,8 +1,8 @@
 {
     "name": "neo-p/redis",
     "description": "redis",
-    "minimum-stability": "dev",
-    "version": "0.0.1",
+    "type": "library",
+    "license": "Apache-2.0",
     "authors": [
         {
             "name": "6xiaowu9",
@@ -10,6 +10,7 @@
         }
     ],
     "require": {
+        "php": ">=7.0",
         "predis/predis": "^1.1",
         "neo-p/annotation": "^0.0.1",
         "neo-p/pool": "^0.0.1",
