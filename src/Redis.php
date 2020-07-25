@@ -48,9 +48,9 @@ class Redis
      * @return Client
      * @throws RedisException
      */
-    public function createConnection()
+    public function _createConnection()
     {
-        if (! $this->isConnect()) {
+        if (! $this->_isConnect()) {
             try {
                 $redis  = new Client($this->_parameters, $this->_options);
                 $this->_isConnect = true;
@@ -65,9 +65,9 @@ class Redis
      * connect
      * @return bool
      */
-    protected function connect(): bool
+    protected function _connect(): bool
     {
-        $this->_root->connect($this);
+        $this->_root->_connect($this);
         return true;
     }
 
@@ -75,10 +75,10 @@ class Redis
      * release
      * @return bool
      */
-    protected function release(): bool
+    protected function _release(): bool
     {
         $this->_redis->select($this->_parameters['database'] ?? 0);
-        $this->_root->release($this);
+        $this->_root->_release($this);
         return true;
     }
 
@@ -86,7 +86,7 @@ class Redis
      * close connect
      * @return bool
      */
-    public function close(): bool
+    public function _close(): bool
     {
         if (! isset($this->_redis)) {
             return true;
@@ -97,16 +97,16 @@ class Redis
     }
 
 
-    public function isConnect(): bool
+    public function _isConnect(): bool
     {
         return $this->_isConnect;
     }
 
     public function __call($name, $arguments)
     {
-        $this->connect();
+        $this->_connect();
         $result = $this->_redis->$name(...$arguments);
-        $this->release();
+        $this->_release();
         return $result;
     }
 }

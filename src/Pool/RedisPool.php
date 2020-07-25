@@ -25,7 +25,7 @@ class RedisPool extends Pool implements RedisInterface, PoolOriginInterface
         );
     }
 
-    public function get(array $config, string $name): PoolInterface
+    public function _get(array $config, string $name): PoolInterface
     {
         if (PoolProvider::hasPool($name)) {
             return PoolProvider::getPool($name);
@@ -38,24 +38,24 @@ class RedisPool extends Pool implements RedisInterface, PoolOriginInterface
                 $maxIdle = $config['pool']['max_idle'] ?? 1;
             }
 
-            $this->pool($redis, $maxConnect, $maxIdle);
+            $this->_pool($redis, $maxConnect, $maxIdle);
             PoolProvider::setPool($name, $this);
             return $this;
         }
     }
 
-    public function connect(Redis $redis): bool
+    public function _connect(Redis $redis): bool
     {
-        if (!$redis->isConnect()) {
-            $redis->createConnection();
+        if (!$redis->_isConnect()) {
+            $redis->_createConnection();
         }
         return true;
     }
 
-    public function release(&$redis): bool
+    public function _release(&$redis): bool
     {
-        if ($redis->isConnect()) {
-            parent::release($redis);
+        if ($redis->_isConnect()) {
+            parent::_release($redis);
         }
         return true;
     }

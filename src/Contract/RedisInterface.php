@@ -6,6 +6,6 @@ use NeoP\Redis\Redis;
 
 interface RedisInterface
 {
-    public function release(&$redis): bool;
-    public function connect(Redis $redis): bool;
+    public function _release(&$redis): bool;
+    public function _connect(Redis $redis): bool;
 }
