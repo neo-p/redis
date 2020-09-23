@@ -3,71 +3,71 @@
 namespace NeoP\Redis;
 
 use NeoP\Redis\Exception\RedisException;
-use Predis\Client;
+use NeoP\Pool\Annotation\Mapping\Pool as PoolMapping;
+use NeoP\Redis\Contract\RedisInterface;
+use NeoP\Pool\Contract\PoolInterface;
+use NeoP\Pool\PoolProvider;
 
-class Redis
+use Swoole\Database\RedisConfig;
+use Swoole\Database\RedisPool;
+
+/**
+ * @PoolMapping(RedisInterface::class)
+ */
+class Redis implements RedisInterface, PoolInterface
 {
-
     /**
-     * redis object
-     * @var Client
-     */
-    protected $_redis;
-    
-    /**
-     * predis parameters
+     * redis config
      * @var array
      */
-    protected $_parameters;
-    /**
-     * predis options
-     * @var array
-     */
-    protected $_options;
+    protected $_config = [
+        'host' => 'localhost',
+        'port' => '6379',
+        'password' => '',
+        'database' => 0,
+        'timeout' => 0,
+        'size' => 64
+    ];
+
 
     /**
-     * isConnect
-     * @var bool
+     * pool
      */
-    protected $_isConnect = false;
+    protected $_pool;
 
-    /**
-     * root
-     */
-    protected $_root;
-
-    function __construct($root, array $parameters, array $options = []) 
-    {
-        $this->_root = $root;
-        $this->_parameters = $parameters;
-        $this->_options = $options;
-    }
-    
     /**
      * createConnection
      * @return Client
      * @throws RedisException
      */
-    public function _createConnection()
+    public function _createPool(array $config, string $name)
     {
-        if (! $this->_isConnect()) {
-            try {
-                $redis  = new Client($this->_parameters, $this->_options);
-                $this->_isConnect = true;
-                $this->_redis = $redis;
-            } catch (\Throwable $e) {
-                throw new RedisException($e->getMessage(), $e->getCode);
-            }
+        if (! $this->_pool) {
+
+            $this->_config = array_replace_recursive($this->_config, $config);
+
+            $this->_pool = new RedisPool(
+                (new RedisConfig())
+                    ->withHost($this->_config['host'])
+                    ->withPort($this->_config['port'])
+                    ->withAuth($this->_config['password'])
+                    ->withDbIndex($this->_config['database'])
+                    ->withTimeout($this->_config['timeout']),
+                $this->_config['size']
+            );
+
+            PoolProvider::setPool($name, $this);
         }
+        return $this;
     }
 
     /**
      * connect
      * @return bool
      */
-    protected function _connect(): bool
+    protected function _getConnect(): bool
     {
-        $this->_root->_connect($this);
+        $this->_redis = $this->_pool->get();
         return true;
     }
 
@@ -77,34 +77,13 @@ class Redis
      */
     protected function _release(): bool
     {
-        $this->_redis->select($this->_parameters['database'] ?? 0);
-        $this->_root->_release($this);
+        $this->_pool->put($this->_redis);
         return true;
-    }
-
-    /**
-     * close connect
-     * @return bool
-     */
-    public function _close(): bool
-    {
-        if (! isset($this->_redis)) {
-            return true;
-        }
-        $this->_redis->quit();
-        $this->_redis = null;
-        return true;
-    }
-
-
-    public function _isConnect(): bool
-    {
-        return $this->_isConnect;
     }
 
     public function __call($name, $arguments)
     {
-        $this->_connect();
+        $this->_getConnect();
         $result = $this->_redis->$name(...$arguments);
         $this->_release();
         return $result;
